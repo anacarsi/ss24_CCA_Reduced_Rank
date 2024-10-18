@@ -1,0 +1,78 @@
+---
+title: "GSE161533 Analysis"
+output: html_notebook
+---
+
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install(c("affy", "affyPLM", "limma", "gage", "gageData"))
+
+library(affy)
+library(affyPLM)
+library(limma)
+library(gage)
+library(gageData)
+
+# Read the .CEL file
+cel_data <- ReadAffy(filenames="GSM4909596_20200609-190360C_121P_HG-U133_Plus_2_.CEL")
+
+```
+```{r}
+head(cel_data)
+```
+
+```{r}
+
+# Perform RMA normalization
+normalized_data <- rma(cel_data)
+
+# Get expression values
+expression_matrix <- exprs(normalized_data)
+
+# Basic quality control plots
+par(mfrow=c(2,2))
+hist(expression_matrix, main="Distribution of Normalized Expression Values", xlab="Expression")
+boxplot(expression_matrix, main="Boxplot of Normalized Expression Values", ylab="Expression")
+plot(density(expression_matrix), main="Density Plot of Normalized Expression Values")
+qqnorm(as.vector(expression_matrix))
+qqline(as.vector(expression_matrix), col="red")
+
+# Load KEGG pathways
+data(kegg.gs)
+
+# Perform pathway analysis
+pathway_results <- gage(expression_matrix, gsets=kegg.gs, ref=NULL, samp=NULL)
+
+# Get the top up-regulated and down-regulated pathways
+top_pathways <- rbind(head(pathway_results$greater, 10), head(pathway_results$less, 10))
+
+# Print top pathways
+print(top_pathways)
+
+# Plot top pathways
+par(mar=c(5,20,4,2))
+barplot(top_pathways$stat, 
+        names.arg=rownames(top_pathways), 
+        horiz=TRUE, 
+        las=1, 
+        main="Top 10 Up and Down Regulated Pathways",
+        xlab="t-statistic")
+
+# Heatmap of top genes in a specific pathway (e.g., "KEGG_CELL_CYCLE")
+cell_cycle_genes <- kegg.gs[["KEGG_CELL_CYCLE"]]
+cell_cycle_expr <- expression_matrix[cell_cycle_genes,]
+heatmap(cell_cycle_expr, main="Expression of Cell Cycle Genes")
+
+# Save results
+write.csv(pathway_results$greater, "upregulated_pathways.csv")
+write.csv(pathway_results$less, "downregulated_pathways.csv")
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
