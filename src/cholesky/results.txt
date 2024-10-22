@@ -1,0 +1,2 @@
+Cholesky QR-based retraction: {'Time': 3.6551899909973145, 'Accuracy': 23111367.300812006}
+Polar-based retraction: {'Time': 5.289219856262207, 'Accuracy': 1.1799047884440291e+17}

@@ -51,17 +51,19 @@ def classify(df: pd.DataFrame) -> pd.DataFrame:
     subtypes = {col: classify_cell_line(col.split('_')[1]) for col in df.columns}
     subtype_df = pd.DataFrame.from_dict(subtypes, orient='index', columns=['Subtype']) # new dataframe with cell line names as index
 
-    # One-hot encode the subtypes
-    subtype_encoded = pd.get_dummies(subtype_df['Subtype'])
+    subtype_df = ignore_subtypes(subtype_df)
 
     print(subtype_df)
-    print("\nOne-hot encoded subtypes:")
-    print(subtype_encoded)
 
     # Save the classifications
     subtype_df.to_csv('cell_line_subtypes.csv')
-    subtype_encoded.to_csv('cell_line_subtypes_encoded.csv')
 
+def ignore_subtypes(df_classified: pd.DataFrame) -> pd.DataFrame:
+    """
+    Ignore cell lines that have Unclassified subtype.
+    """
+    df_classified = df_classified.drop(columns=['Unclassified'])
+    return df_classified
 
 class Data_Processor:
     """

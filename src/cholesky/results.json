@@ -1,0 +1,52 @@
+{
+    "n=10000, p=100": {
+        "Cholesky QR-based retraction": {
+            "Time": 0.3380012512207031,
+            "Accuracy": 2206020.7728354237
+        },
+        "Polar-based retraction": {
+            "Time": 0.34169960021972656,
+            "Accuracy": 2936303359123670.0
+        }
+    },
+    "n=10000, p=200": {
+        "Cholesky QR-based retraction": {
+            "Time": 0.6104872226715088,
+            "Accuracy": 1835862.9885266968
+        },
+        "Polar-based retraction": {
+            "Time": 0.8845937252044678,
+            "Accuracy": 8481772927396926.0
+        }
+    },
+    "n=10000, p=500": {
+        "Cholesky QR-based retraction": {
+            "Time": 1.5443229675292969,
+            "Accuracy": 192115.73411102244
+        },
+        "Polar-based retraction": {
+            "Time": 2.052628993988037,
+            "Accuracy": 3.645785170273635e+16
+        }
+    },
+    "n=10000, p=1000": {
+        "Cholesky QR-based retraction": {
+            "Time": 3.3119778633117676,
+            "Accuracy": 1668126.663180346
+        },
+        "Polar-based retraction": {
+            "Time": 5.458942890167236,
+            "Accuracy": 1.1762985169269685e+17
+        }
+    },
+    "n=10000, p=2000": {
+        "Cholesky QR-based retraction": {
+            "Time": 8.041426420211792,
+            "Accuracy": 76061906.93038212
+        },
+        "Polar-based retraction": {
+            "Time": 14.088579177856445,
+            "Accuracy": 4.120625734133282e+17
+        }
+    }
+}
