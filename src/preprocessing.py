@@ -9,6 +9,7 @@ import os
 import numpy as np
 import pandas as pd
 import logging
+from sklearn.preprocessing import StandardScaler
 
 def log2_transform(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -29,6 +30,51 @@ def log2_transform(df: pd.DataFrame) -> pd.DataFrame:
     # Combine gene IDs and transformed data
     transformed_df = pd.concat([gene_ids, log2_expression_data], axis=1)
     return transformed_df
+
+def preprocessing(gene_expression: pd.DataFrame, gene_pathway_mappings: pd.DataFrame) -> tuple:
+    """  
+    Preprocess gene expression data and calculate pathway activity scores.
+
+    Returns:
+    ----------------
+    X_scaled: np.ndarray
+            Preprocessed gene expression data.
+    Y_scaled: np.ndarray
+            Preprocessed pathway activity data.
+    """
+    # Check for missing values
+    print("Missing values in gene expression data:")
+    print(gene_expression.isnull().sum().sum())
+    gene_expression.replace([np.inf, -np.inf], np.nan, inplace=True)
+    gene_expression = gene_expression.dropna()
+
+    # Apply log2 transformation
+    gene_expression = log2_transform(gene_expression)
+
+    # Calculate pathway activity scores
+    def calculate_pathway_score(pathway_genes, expression_data):
+        return expression_data.loc[pathway_genes].mean()
+
+    pathway_scores = {}
+    for pathway in gene_pathway_mappings.columns:
+        pathway_genes = gene_pathway_mappings[gene_pathway_mappings[pathway].notna()].index
+        pathway_scores[pathway] = gene_expression.apply(lambda col: calculate_pathway_score(pathway_genes, col))
+
+    pathway_activity = pd.DataFrame(pathway_scores)
+
+    # Ensure gene expression and pathway activity have the same samples
+    common_samples = gene_expression.columns.intersection(pathway_activity.index)
+    X = gene_expression[common_samples].T
+    Y = pathway_activity.loc[common_samples]
+
+    scaler = StandardScaler()
+    X_scaled = pd.DataFrame(scaler.fit_transform(X), index=X.index, columns=X.columns)
+    Y_scaled = pd.DataFrame(scaler.fit_transform(Y), index=Y.index, columns=Y.columns)
+
+    print("Shape of X (gene expression):", X_scaled.shape)
+    print("Shape of Y (pathway activity):", Y_scaled.shape)
+
+    return X_scaled, Y_scaled
 
 def classify(df: pd.DataFrame) -> pd.DataFrame:
     """
