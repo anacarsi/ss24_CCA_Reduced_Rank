@@ -1,6 +1,6 @@
 # **Multivariate Reduced-Rank Models**  
 Welcome to the **Multivariate Reduced-Rank Models** repository:) This project presents **Canonical Correlation Analysis (CCA)** with numerical methods and optimization on matrix manifolds. It's a continuation of a prior project (2023) on Principal Component Analysis (PCA), expanding into CCA for high-dimensional data and data visualization.
-
+![Retraction comparison for GSE48213 Dataset](images/runtime_comparison.png)
 ---
 
 ## **🌟 Goals of the Project**  
