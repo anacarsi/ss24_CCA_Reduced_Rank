@@ -3,13 +3,13 @@ Research Goal:
 Use CCA to identify sets of genes that best differentiate between NSCLC patients and healthy controls, showing genetic factors in NSCLC development.
 For this analysis, we use the TCGA-LUAD (Lung Adenocarcinoma) dataset, which is a type of NSCLC. 
 This data is publicly available through the GDC Data Portal and UCSC Xena Browser.
-
 """
 
 import os
 import numpy as np
 import pandas as pd
 import logging
+from sklearn.preprocessing import StandardScaler
 
 def log2_transform(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -35,19 +35,12 @@ def preprocessing(gene_expression: pd.DataFrame, gene_pathway_mappings: pd.DataF
     """  
     Preprocess gene expression data and calculate pathway activity scores.
 
-    Parameters:
-    ----------------
-    gene_expression: pd.DataFrame
-        Gene expression data.
-    gene_pathway_mappings: pd.DataFrame
-        Gene-pathway mappings.
-
     Returns:
     ----------------
     X_scaled: np.ndarray
-        Preprocessed gene expression data.
+            Preprocessed gene expression data.
     Y_scaled: np.ndarray
-        Preprocessed pathway activity data.
+            Preprocessed pathway activity data.
     """
     # Check for missing values
     print("Missing values in gene expression data:")
