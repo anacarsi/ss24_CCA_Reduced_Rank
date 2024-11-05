@@ -2,11 +2,13 @@
 Welcome to the **Multivariate Reduced-Rank Models** repository:) This project presents **Canonical Correlation Analysis (CCA)** with numerical methods and optimization on matrix manifolds. It's a continuation of a prior project (2023) on Principal Component Analysis (PCA), expanding into CCA for high-dimensional data and data visualization.
 
 ---
-
 ## **🌟 Goals of the Project**  
 1. **CCA for High-Dimensional Data**: Understand and apply CCA to explore relationships between datasets with many features.
 2. **Optimization on Matrix Manifolds**: Use **Cholesky QR-based retraction** to improve the efficiency of manifold-based optimization methods. I use the Stiefel manifold for orthogonalization reasons.
 3. **CCA for Cancer Cell Pathways Classification**: Apply CCA for meaningful visualizations of multi-view datasets and demonstrate code applications.
+   <div style="text-align: center;">
+  <img src="images/runtime_comparison.png" alt="Retraction comparison for GSE48213 Dataset" width="400" height="300"/>
+</div>
 
 The dataset contains gene expression data from breast cancer cell lines and corresponding KEGG pathway information. The data is derived from the GSE48213 dataset, which includes gene expression profiles of various breast cancer cell lines.
 - Gene Expression Data:Genes (Ensembl IDs) x Cell lines (e.g., GSM1172844_184A1, GSM1172845_184B5, etc.)
