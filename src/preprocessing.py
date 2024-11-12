@@ -111,6 +111,7 @@ def ignore_subtypes(df_classified: pd.DataFrame) -> pd.DataFrame:
     df_classified = df_classified.drop(columns=['Unclassified'])
     return df_classified
 
+
 class Data_Processor:
     """
     Class to process the gene expression data.

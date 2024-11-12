@@ -18,6 +18,7 @@ Functions:
 - cca_with_tracking: Perform CCA on the Stiefel Manifold with tracking of objective values
 - canonical_correlation_heatmap: Plot the canonical correlation heatmap
 - optimization_path_plot: Plot the optimization path on the Stiefel Manifold =#
+
 function cca_on_stiefel(X::Matrix{Float64}, Y::Matrix{Float64}, k::Int)
     n, p = size(X)
     q = size(Y, 2)
