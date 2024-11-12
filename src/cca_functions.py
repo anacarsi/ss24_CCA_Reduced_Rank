@@ -8,7 +8,38 @@ import matplotlib.pyplot as plt
 from pymanopt import Problem
 from pymanopt.manifolds import Stiefel, Product
 from pymanopt.optimizers import TrustRegions
-from pymanopt.function import Callable
+
+from sklearn.cross_decomposition import CCA
+import time
+
+def standard_cca(X: np.ndarray, Y: np.ndarray, n_components: int) -> tuple:
+    """
+    Perform Standard CCA.
+
+    Parameters:
+    ----------
+    X : np.ndarray
+        The first dataset (genes with expressions).
+    Y : np.ndarray
+        The second dataset (pathways of the genes).
+    n_components : int
+        The number of components to compute.
+    
+    Returns:
+    -------
+    tuple : (XA, YB, correlations, runtime)
+        Canonical scores for X and Y, canonical correlations, and runtime.
+    """
+    start_time = time.time()
+    cca = CCA(n_components=n_components)
+    X_c, Y_c = cca.fit_transform(X, Y)
+    end_time = time.time()
+    
+    # Compute canonical correlations for comparison
+    correlations = [np.corrcoef(X_c[:, i], Y_c[:, i])[0, 1] for i in range(n_components)]
+    
+    return X_c, Y_c, correlations, end_time - start_time
+
 
 def cca_on_stiefel(X: np.ndarray, Y: np.ndarray, k: int):
     """
