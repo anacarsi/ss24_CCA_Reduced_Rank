@@ -11,7 +11,7 @@ from pymanopt.optimizers import TrustRegions
 import pandas as pd
 from sklearn.cross_decomposition import CCA
 import time
-from utils import init_stability_log, log_stability_data
+from utils.utils import init_stability_log, log_stability_data
 
 def standard_cca(X: np.ndarray, Y: np.ndarray, n_components: int) -> tuple:
     """
