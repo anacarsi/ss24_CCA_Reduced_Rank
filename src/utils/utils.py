@@ -6,8 +6,8 @@ import mygene
 import csv
 import numpy as np
 import requests
+import time
 
-DEP_MAP_URL= "https://api.depmap.org/v3/portal/cell_lines/"
 
 """
 Dataset overview:
@@ -163,49 +163,34 @@ def classify_cancerous_celllines() -> pd.DataFrame:
     # The first column contains the cell line names (i.e., GSM1172844_184A1)
     data = pd.read_csv("combined_data.txt", sep="\t", index_col=0)
     cell_lines = data.columns.tolist()
-
-    cell_line_classifications = {}
+    cell_line_names = []
 
     # Loop through the cell lines and classify each one
     for cell_line in cell_lines:
         cell_line_name = cell_line.split("_")[1]  # Extract the cell line name from the column name
-        classification = get_cell_line_info(cell_line_name)
-        cell_line_classifications[cell_line_name] = classification
+        print(f"Classifying {cell_line_name}...")
+        cell_line_names.append(cell_line_name)
+    
+    store_cell_lines(pd.DataFrame(cell_line_names))
+        
+    print("Classification complete.")
+    return pd.DataFrame(cell_line_names)
 
-    classification_df = pd.DataFrame(list(cell_line_classifications.items()), columns=["Cell Line", "Classification"])
-
-    # Save the results to a CSV file
-    classification_df.to_csv("cell_line_classifications.csv", index=False)
-    print("Classification results saved to cell_line_classifications.csv")
-
-def get_cell_line_info(cell_line_name: str) -> str:
+def store_cell_lines(cell_line_names: pd.DataFrame) -> None:
     """
-    Classify a cell line as "Cancerous", "Immortalized", or "Unclassified" based on the DepMap API.
+    Store the cell lines in a CSV file.
 
     Arguments:
-    - cell_line_name: The name of the cell line to classify.
-
-    Returns:
-    - classification: The classification of the cell line.
+    - cell_line_names: The DataFrame containing the cell line names.
     """
-    try:
-        response = requests.get(f"{DEP_MAP_URL}{cell_line_name}")
-        response.raise_for_status()  # Check if the request was successful
-        cell_line_data = response.json()
-        
-        if "oncotree_subtype" in cell_line_data and "oncotree_primary_disease" in cell_line_data:
-            oncotree_subtype = cell_line_data["oncotree_subtype"]
-            oncotree_primary_disease = cell_line_data["oncotree_primary_disease"]
-            
-            # Classify based on available information
-            if oncotree_subtype == "Cancerous" or oncotree_primary_disease != "Non-Cancerous":
-                return "Cancerous"
-            elif "immortalized" in cell_line_data.get("description", "").lower():
-                return "Immortalized"
-            else:
-                return "Unclassified"
-        else:
-            return "Unclassified"
+    file_path = os.path.join(os.getcwd(), "..", "data", "cell_lines")
+    if not os.path.exists(file_path):
+        os.makedirs(file_path)
+    try: 
+        with open(os.path.join(file_path, "cell_line_names.csv"), "w") as f:
+            cell_line_names.to_csv(f, index=False)
     except Exception as e:
-        print(f"Error fetching data for {cell_line_name}: {e}")
-        return "Unclassified"
+        print(f"Error storing cell lines: {e}")
+
+    print(f"Cell lines stored in {file_path}")
+    
