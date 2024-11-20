@@ -168,7 +168,6 @@ def classify_cancerous_celllines() -> pd.DataFrame:
     # Loop through the cell lines and classify each one
     for cell_line in cell_lines:
         cell_line_name = cell_line.split("_")[1]  # Extract the cell line name from the column name
-        print(f"Classifying {cell_line_name}...")
         cell_line_names.append(cell_line_name)
     
     store_cell_lines(pd.DataFrame(cell_line_names))

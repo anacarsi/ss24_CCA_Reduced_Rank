@@ -1,0 +1,5 @@
+TODO:
+
+-descargar en https://www.cancerrxgene.org/cellline/HCC1954/749709 csv para cada linea cancerígena.
+-escoger solo los top 4 redactados
+-hacer 5 análisis en total para ver que genes tienen mas sensibilidad para cada tipo de medicamento.
