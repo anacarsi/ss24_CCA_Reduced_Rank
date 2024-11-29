@@ -1,41 +1,49 @@
+# Main script for running the CCA analysis pipeline
+# Ana Carsi 2024
 import argparse
 import os
 import pandas as pd
-from utils.utils import load_data, classify_cancerous_celllines, classify_genes_in_pathways
+from utils.utils import (
+    load_data,
+    classify_cancerous_celllines,
+    classify_genes_in_pathways,
+)
 from src.ccaman.preprocessing import log2_transform, preprocessing
 from cca_functions import run_experiment, standard_cca
-from visualize import plot_pca, plot_results #TODO: plot_cca_scores, plot_canonical_correlations, plot_explained_variance
+from visualize import (
+    plot_pca,
+    plot_results,
+)  # TODO: plot_cca_scores, plot_canonical_correlations, plot_explained_variance
+
 
 def parse_args():
     """Parse command-line arguments."""
-    parser = argparse.ArgumentParser(description="Breast Cancer Subtype Analysis Pipeline")
-
-    parser.add_argument(
-        '--file_path', 
-        type=str, 
-        required=True, 
-        help='Path to the dataset'
-    )
-    
-    parser.add_argument(
-        '--log_transform', 
-        action='store_true', 
-        help='Apply log2 transformation to gene expression data'
+    parser = argparse.ArgumentParser(
+        description="Breast Cancer Subtype Analysis Pipeline"
     )
 
     parser.add_argument(
-        '--run_cca', 
-        action='store_true', 
-        help='Run Canonical Correlation Analysis (CCA)'
+        "--file_path", type=str, required=True, help="Path to the dataset"
     )
 
     parser.add_argument(
-        '--plot_results', 
-        action='store_true', 
-        help='Plot CCA and other results'
+        "--log_transform",
+        action="store_true",
+        help="Apply log2 transformation to gene expression data",
+    )
+
+    parser.add_argument(
+        "--run_cca",
+        action="store_true",
+        help="Run Canonical Correlation Analysis (CCA)",
+    )
+
+    parser.add_argument(
+        "--plot_results", action="store_true", help="Plot CCA and other results"
     )
 
     return parser.parse_args()
+
 
 def main():
     args = parse_args()
@@ -58,7 +66,9 @@ def main():
 
     # Preprocessing
     file_path_combined = os.path.join(os.getcwd(), "..", "data", "combined_data.txt")
-    filepath_pathway = os.path.join(os.getcwd(), "..", "data", "gene_pathway_mappings.csv")
+    filepath_pathway = os.path.join(
+        os.getcwd(), "..", "data", "gene_pathway_mappings.csv"
+    )
     gene_expression = pd.read_csv(file_path_combined, sep="\t", index_col=0)
     gene_pathway_mappings = pd.read_csv(filepath_pathway, index_col=0)
 
@@ -78,6 +88,7 @@ def main():
     if args.plot_results:
         plot_results(results)
         print("Results plotted.")
+
 
 if __name__ == "__main__":
     main()

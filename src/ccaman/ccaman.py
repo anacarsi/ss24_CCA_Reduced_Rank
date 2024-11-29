@@ -1,28 +1,66 @@
 """
 (GSE48213): Identifying gene expression patterns associated with 
 different breast cancer subtypes
+In file: 
+1. Column 1 (EnsEMBL_Gene_ID): 
+    unique identifier for each gene from the Ensembl database.
+2. Column 2 (e.g., MDAMB453): 
+    expression value for each gene in the specific cell line.
+
+These are normalized read counts or FPKM/TPM values (Fragments/Transcripts Per Kilobase Million).
+Higher values indicate higher expression of the gene in that cell line, zero values indicate that the gene is not expressed (or expression is below detection threshold)
 """
+
 import logging
 import sys
 from ..utils.utils import load_data
+from classify import classify_cancerous_celllines, get_sensitivity_data
+import json
+import pandas as pd
 
-class CCAMan():
-    def __init__(self, config):
-        self.config = config
-        self.logger = logging.getLogger('ccaman')
+class CCAMan:
+    def __init__(self, log_file="ccaman.log"):
+        self.logger = logging.getLogger("CCAMan")
         self.logger.setLevel(logging.DEBUG)
-        self.logger.addHandler(logging.StreamHandler(sys.stdout))
-        self.logger.info('CCAMan initialized')
+        handler = logging.FileHandler(log_file)
+        handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        self.logger.addHandler(handler)
+        self.logger.info("CCAMan initialized")
+        try: 
+            with open("config.json", "r") as f:
+                self.config = json.load(f)
+        except Exception as e:
+            self.logger.error(f"Error loading config file: {e}")
+            sys.exit(1)
 
+    def load_data(self) -> pd.DataFrame:
+        """
+        Calls the global load_data function and ensures it logs through this instance's logger.
+        """
+        try:
+            return load_data(self.config["file_path"], logger=self.logger)
+        except Exception as e:
+            self.logger.error(f"Error in load_data: {e}")
+            raise e
 
     def analyze(self):
-        self.logger.info('Analyzing data...')
-        # 1. Load data
-        self.data = load_data(self.config['file_path'])
-        # 2. Preprocessing
+        # Load data
+        self.data = self.load_data()
+        self.logger.info("Data loaded successfully.")
+        self.cell_lines_names = classify_cancerous_celllines(self.logger)
 
-        # 3. Classify:
+        drug_classes = {
+            "HER2 inhibitors": ["lapatinib"], 
+            "Hormone therapy": ["tamoxifen", "anastrozole", "letrozole", "exemestane"],
+            "PARP inhibitors": ["olaparib"],
+            "CDK4/6 inhibitors": ["palbociclib"],
+            "PI3K inhibitors": ["alpelisib"],
+        }
+        self.sensitivity_data = get_sensitivity_data(drug_classes, self.cell_lines_names, self.logger)
+
+
+        # Preprocessing
+
+        # Classify:
         # - Classify cancerous cell lines
         # - Classify genes in pathways
-
-

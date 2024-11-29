@@ -1,0 +1,6 @@
+{
+    "file_path": "./data/GSE48213",
+    "log_level": "INFO",
+    "batch_size": 32,
+    "learning_rate": 0.01
+}
