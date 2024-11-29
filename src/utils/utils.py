@@ -74,59 +74,6 @@ def load_data(path_input: str) -> pd.DataFrame:
         return combined_data
 
 
-def classify_genes_in_pathways():
-    """
-    Find which genes are in which KEGG pathways.
-    """
-    data = pd.read_csv("combined_data.txt", sep="\t", index_col=0)
-    genes = data.index.tolist()
-
-    # Convert Ensembl IDs to gene symbols
-    mg = mygene.MyGeneInfo()
-    gene_info = mg.querymany(
-        genes, scopes="ensembl.gene", fields="symbol", species="human"
-    )
-    ensembl_to_symbol = {
-        gene["query"]: gene.get("symbol", "") for gene in gene_info if "symbol" in gene
-    }  # create a dictionary of Ensembl IDs to gene symbols
-
-    # Load KEGG pathway gene sets
-    kegg_gene_sets = gp.get_library("KEGG_2021_Human")
-    gene_pathway_map = {}
-
-    for pathway, pathway_genes in kegg_gene_sets.items():
-        # Find genes that are both in data and in the pathway
-        common_genes = set(ensembl_to_symbol.values()).intersection(pathway_genes)
-
-        # If there are common genes, add them to the gene_pathway_map
-        for gene_symbol in common_genes:
-            ensembl_ids = [
-                ensembl
-                for ensembl, symbol in ensembl_to_symbol.items()
-                if symbol == gene_symbol
-            ]
-            for ensembl_id in ensembl_ids:
-                if ensembl_id not in gene_pathway_map:
-                    gene_pathway_map[ensembl_id] = []
-                gene_pathway_map[ensembl_id].append(pathway)
-
-    # Create a DataFrame from the gene_pathway_map
-    result_df = pd.DataFrame.from_dict(gene_pathway_map, orient="index")
-    result_df.columns = [f"Pathway_{i+1}" for i in range(result_df.shape[1])]
-
-    result_df.to_csv("gene_pathway_mappings.csv")
-
-    total_genes = len(genes)
-    mapped_genes = len(gene_pathway_map)
-    print(f"Total genes in your data: {total_genes}")
-    print(f"Genes mapped to KEGG pathways: {mapped_genes}")
-    print(f"Percentage of genes mapped: {mapped_genes/total_genes*100:.2f}%")
-
-    # Print the first few rows of the result
-    print("\nFirst few gene-pathway mappings:")
-    print(result_df.head())
-
-
 def log_stability_data(filename, iteration, A, B, G_A, G_B):
     """
     Logs the L1 and Linf norms of matrices A, B, G_A, and G_B for each iteration.
@@ -169,46 +116,3 @@ def init_stability_log(filename: str, k: int):
         writer = csv.writer(file)
         writer.writerow(headers)
 
-
-def classify_cancerous_celllines() -> pd.DataFrame:
-    """
-    Create a new dataset with the classification between immortalized, cancerous or unclassified in breast cancer tumours.
-
-    Returns:
-    - classification_df: A DataFrame with the classification of each cell line.
-    """
-    # The first column contains the cell line names (i.e., GSM1172844_184A1)
-    data = pd.read_csv("combined_data.txt", sep="\t", index_col=0)
-    cell_lines = data.columns.tolist()
-    cell_line_names = []
-
-    # Loop through the cell lines and classify each one
-    for cell_line in cell_lines:
-        cell_line_name = cell_line.split("_")[
-            1
-        ]  # Extract the cell line name from the column name
-        cell_line_names.append(cell_line_name)
-
-    store_cell_lines(pd.DataFrame(cell_line_names))
-
-    print("Classification complete.")
-    return pd.DataFrame(cell_line_names)
-
-
-def store_cell_lines(cell_line_names: pd.DataFrame) -> None:
-    """
-    Store the cell lines in a CSV file.
-
-    Arguments:
-    - cell_line_names: The DataFrame containing the cell line names.
-    """
-    file_path = os.path.join(os.getcwd(), "..", "data", "cell_lines")
-    if not os.path.exists(file_path):
-        os.makedirs(file_path)
-    try:
-        with open(os.path.join(file_path, "cell_line_names.csv"), "w") as f:
-            cell_line_names.to_csv(f, index=False)
-    except Exception as e:
-        print(f"Error storing cell lines: {e}")
-
-    print(f"Cell lines stored in {file_path}")
