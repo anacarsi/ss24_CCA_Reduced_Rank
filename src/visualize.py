@@ -3,6 +3,7 @@ from sklearn.decomposition import PCA
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def apply_pca(X: np.ndarray, Y: np.ndarray, n_components: int) -> tuple:
     """
     Apply PCA to X and Y.
@@ -26,6 +27,7 @@ def apply_pca(X: np.ndarray, Y: np.ndarray, n_components: int) -> tuple:
     Y_pca = pca.fit_transform(Y)
     return X_pca, Y_pca
 
+
 def plot_pca(X: np.ndarray, Y: np.ndarray):
     """
     Plot PCA-transformed X and Y.
@@ -40,8 +42,8 @@ def plot_pca(X: np.ndarray, Y: np.ndarray):
         The title of the plot.
     """
     fig, ax = plt.subplots()
-    ax.scatter(X[:, 0], X[:, 1], label='X', color='pink')
-    ax.scatter(Y[:, 0], Y[:, 1], label='Y', color='lightpink')
+    ax.scatter(X[:, 0], X[:, 1], label="X", color="pink")
+    ax.scatter(Y[:, 0], Y[:, 1], label="Y", color="lightpink")
     ax.set_title("PCA for gene classification on cell lines", fontsize=16)
     ax.legend()
     plt.show()

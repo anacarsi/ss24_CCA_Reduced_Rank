@@ -13,6 +13,7 @@ from sklearn.cross_decomposition import CCA
 import time
 from utils.utils import init_stability_log, log_stability_data
 
+
 def standard_cca(X: np.ndarray, Y: np.ndarray, n_components: int) -> tuple:
     """
     Perform Standard CCA.
@@ -25,7 +26,7 @@ def standard_cca(X: np.ndarray, Y: np.ndarray, n_components: int) -> tuple:
         The second dataset (pathways of the genes).
     n_components : int
         The number of components to compute.
-    
+
     Returns:
     -------
     tuple : (XA, YB, correlations, runtime)
@@ -35,16 +36,20 @@ def standard_cca(X: np.ndarray, Y: np.ndarray, n_components: int) -> tuple:
     cca = CCA(n_components=n_components)
     X_c, Y_c = cca.fit_transform(X, Y)
     end_time = time.time()
-    
+
     # Compute canonical correlations for comparison
-    correlations = [np.corrcoef(X_c[:, i], Y_c[:, i])[0, 1] for i in range(n_components)]
-    
+    correlations = [
+        np.corrcoef(X_c[:, i], Y_c[:, i])[0, 1] for i in range(n_components)
+    ]
+
     return X_c, Y_c, correlations, end_time - start_time
+
 
 from scipy.linalg import cholesky, polar
 
+
 def cca_objective(X: np.ndarray, Y: np.ndarray, A: np.ndarray, B: np.ndarray) -> float:
-    """ 
+    """
     Compute the objective function for CCA.
 
     Parameters:
@@ -63,28 +68,34 @@ def cca_objective(X: np.ndarray, Y: np.ndarray, A: np.ndarray, B: np.ndarray) ->
     corr = np.sum(XA * YB) / (n - 1)
     return -corr  # negative because we're maximizing
 
+
 def cca_gradient(X: np.ndarray, Y: np.ndarray, A: np.ndarray, B: np.ndarray) -> tuple:
-    """ 
+    """
     Compute the gradient of the objective function for Canonical Correlation Analysis (CCA).
     """
     n_samples = X.shape[0]
 
     # Check matrix dimensions
     if X.shape[1] != A.shape[0] or Y.shape[1] != B.shape[0] or A.shape[1] != B.shape[1]:
-        raise ValueError("Dimension mismatch: Please ensure X, Y, A, and B are compatible with shape requirements.")
+        raise ValueError(
+            "Dimension mismatch: Please ensure X, Y, A, and B are compatible with shape requirements."
+        )
 
     # Compute projections
     XA = X @ A  # Shape: (n_samples, k)
     YB = Y @ B  # Shape: (n_samples, k)
-    
+
     # Compute gradients
     grad_A = -X.T @ YB / (n_samples - 1)
     grad_B = -Y.T @ XA / (n_samples - 1)
 
     return grad_A, grad_B
 
-def cholesky_qr_retraction(X: np.ndarray, G: np.ndarray, xi: np.ndarray, epsilon=1e-6) -> np.ndarray:
-    """ 
+
+def cholesky_qr_retraction(
+    X: np.ndarray, G: np.ndarray, xi: np.ndarray, epsilon=1e-6
+) -> np.ndarray:
+    """
     Retract a point on the Stiefel manifold using the Cholesky QR retraction. Add regularization to avoid singular matrices.
     """
     Z = (X + xi).T @ G @ (X + xi)
@@ -97,14 +108,16 @@ def cholesky_qr_retraction(X: np.ndarray, G: np.ndarray, xi: np.ndarray, epsilon
     retracted_point = (X + xi) @ np.linalg.inv(L.T)
     return retracted_point
 
+
 def polar_retraction(X: np.ndarray, G: np.ndarray, xi: np.ndarray) -> np.ndarray:
-    """ 
+    """
     Retract a point on the Stiefel manifold using the polar retraction.
     """
     Z = (X + xi).T @ G @ (X + xi)
     U, _ = polar(Z)
     retracted_point = (X + xi) @ np.linalg.inv(U.T)
     return retracted_point
+
 
 def cca_on_stiefel(X: np.ndarray, Y: np.ndarray, k: int):
     """
@@ -126,24 +139,25 @@ def cca_on_stiefel(X: np.ndarray, Y: np.ndarray, k: int):
     """
     n, p = X.shape
     q = Y.shape[1]
-    
+
     M1 = Stiefel(p, k)
     M2 = Stiefel(q, k)
     manifold = Product([M1, M2])
-    
+
     def cost(point):
         U, V = point
         cost_value = -np.trace((U.T @ X.T @ Y @ V) @ (U.T @ X.T @ Y @ V).T)
         print(f"The cost function value is {cost_value}")
         return cost_value
-    
+
     # Create a problem instance
     problem = Problem(manifold=manifold, cost=cost)
     optimizer = TrustRegions()
-    
+
     Xopt = optimizer.run(problem).point
-    
+
     return Xopt
+
 
 def cca_with_tracking(X: np.ndarray, Y: np.ndarray, k: int, max_iter: int = 100):
     """
@@ -170,10 +184,20 @@ def cca_with_tracking(X: np.ndarray, Y: np.ndarray, k: int, max_iter: int = 100)
         Wx, Wy = cca_on_stiefel(X, Y, k)
         obj = -np.trace(np.dot(np.dot(Wx.T, X.T @ Y), Wy) @ np.dot(Wx.T, X.T @ Y), Wy).T
         obj_values.append(obj)
-    
+
     return obj_values
 
-def riemannian_gradient_descent(X, Y, k, retraction_method, max_iter=10, lr=0.8, tol=1e-3, stability_log='stability.csv'):
+
+def riemannian_gradient_descent(
+    X,
+    Y,
+    k,
+    retraction_method,
+    max_iter=10,
+    lr=0.8,
+    tol=1e-3,
+    stability_log="stability.csv",
+):
     """
     Perform Riemannian gradient descent to solve CCA.
 
@@ -222,16 +246,23 @@ def riemannian_gradient_descent(X, Y, k, retraction_method, max_iter=10, lr=0.8,
         grad_B = np.clip(grad_B, -max_grad_norm, max_grad_norm)
 
         # Retraction with checks
-        if retraction_method == 'cholesky':
+        if retraction_method == "cholesky":
             A_new = cholesky_qr_retraction(A, G_A, -lr * grad_A)
             B_new = cholesky_qr_retraction(B, G_B, -lr * grad_B)
-        elif retraction_method == 'polar':
+        elif retraction_method == "polar":
             A_new = polar_retraction(A, G_A, -lr * grad_A)
             B_new = polar_retraction(B, G_B, -lr * grad_B)
-        
+
         # Check for NaNs or Infs in retracted matrices
-        if np.isnan(A_new).any() or np.isnan(B_new).any() or np.isinf(A_new).any() or np.isinf(B_new).any():
-            print("Warning: Retraction resulted in NaN or Inf values. Reducing learning rate.")
+        if (
+            np.isnan(A_new).any()
+            or np.isnan(B_new).any()
+            or np.isinf(A_new).any()
+            or np.isinf(B_new).any()
+        ):
+            print(
+                "Warning: Retraction resulted in NaN or Inf values. Reducing learning rate."
+            )
             lr *= 0.5
             continue  # Skip this iteration with a reduced learning rate
 
@@ -251,21 +282,24 @@ def riemannian_gradient_descent(X, Y, k, retraction_method, max_iter=10, lr=0.8,
 
     return A, B, correlations, end_time - start_time, XA, YB
 
-def run_experiment(X: np.ndarray, Y: np.ndarray, k_values: list, retraction_methods: list):
+
+def run_experiment(
+    X: np.ndarray, Y: np.ndarray, k_values: list, retraction_methods: list
+):
     results = []
     scores = []
     for k in k_values:
         for method in retraction_methods:
-            A, B, correlations, runtime, XA, YB = riemannian_gradient_descent(X, Y, k, method)
-            results.append({
-                'k': k,
-                'method': method,
-                'correlations': correlations,
-                'runtime': runtime
-            })
-            scores.append({
-                'k': k,
-                'XA': XA,
-                'YB': YB
-            })
+            A, B, correlations, runtime, XA, YB = riemannian_gradient_descent(
+                X, Y, k, method
+            )
+            results.append(
+                {
+                    "k": k,
+                    "method": method,
+                    "correlations": correlations,
+                    "runtime": runtime,
+                }
+            )
+            scores.append({"k": k, "XA": XA, "YB": YB})
     return pd.DataFrame(results), pd.DataFrame(scores)
