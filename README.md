@@ -5,14 +5,50 @@ Welcome to the **Multivariate Reduced-Rank Models** repository:) This project pr
 ## **🌟 Goals of the Project**  
 1. **CCA for High-Dimensional Data**: Understand and apply CCA to explore relationships between datasets with many features.
 2. **Optimization on Matrix Manifolds**: Use **Cholesky QR-based retraction** to improve the efficiency of manifold-based optimization methods. I use the Stiefel manifold for orthogonalization reasons.
-3. **CCA for Cancer Cell Pathways Classification**: Apply CCA for meaningful visualizations of multi-view datasets and demonstrate code applications.
-   <div style="text-align: center;">
-  <img src="images/runtime_comparison.png" alt="Retraction comparison for GSE48213 Dataset" width="400" height="300"/>
-</div>
+3. **CCA for Cancer Cell Pathways Classification**: Apply CCA to determine which genes suppose a predisposition to be more or less sensitive to certain treatments.
+   <p align="center"><img src="images/runtime_comparison.png" alt="Retraction comparison for GSE48213 Dataset" width="600" height="500"/>
+</p>
+  
 
 The dataset contains gene expression data from breast cancer cell lines and corresponding KEGG pathway information. The data is derived from the GSE48213 dataset, which includes gene expression profiles of various breast cancer cell lines.
 - Gene Expression Data:Genes (Ensembl IDs) x Cell lines (e.g., GSM1172844_184A1, GSM1172845_184B5, etc.)
 - [KEGG Pathway Information](https://www.genome.jp/kegg/pathway.html): Genes (Ensembl IDs) x KEGG pathways
+
+The list of drugs against breast cancer analyzed are currently:
+1. HER2 Inhibitors:
+    - Example: Lapatinib.
+    - Importance:
+        Crucial for HER2-positive breast cancer, which is an aggressive subtype but highly treatable with targeted therapies like HER2 inhibitors.
+        HER2-positive cancers make up about 15-20% of breast cancer cases.
+    - Potential ranking: Very important in the context of HER2-positive patients.
+
+2. Hormone Therapy:
+    - Examples: Tamoxifen, anastrozole, letrozole, exemestane.
+    - Importance:
+        Dominant for hormone receptor-positive (HR+) breast cancer, which constitutes about 70-80% of breast cancer cases.
+        Hormone therapies are a cornerstone in treatment for postmenopausal and premenopausal HR+ cases.
+    - Potential ranking: Likely the most important due to the high prevalence of HR+ breast cancer.
+
+3. PARP Inhibitors:
+    - Example: Olaparib.
+   - Importance:
+        Used primarily in patients with BRCA1/BRCA2 mutations, which are less common but significant for targeted treatment.
+        Effective in treating triple-negative breast cancer (TNBC) with BRCA mutations, a challenging subtype to manage.
+    - Potential ranking: Important but more niche compared to HER2 inhibitors and hormone therapy.
+
+4. CDK4/6 Inhibitors:
+    - Example: Palbociclib.
+    - Importance:
+        Used in HR+/HER2- advanced or metastatic breast cancer in combination with hormone therapy.
+        Rapidly gaining prominence in first-line treatment for advanced HR+ cases.
+    - Potential ranking: Very important, especially in advanced cases of HR+ breast cancer.
+
+5. PI3K Inhibitors:
+    - Example: Alpelisib.
+    - Importance:
+        Targets PIK3CA-mutated HR+/HER2- advanced breast cancer, a subset of hormone receptor-positive cancers.
+        Approved for patients who progress on endocrine therapy.
+    - Potential ranking: Important but more targeted for specific mutations.
 
 ---
 
