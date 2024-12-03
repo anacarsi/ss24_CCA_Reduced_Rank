@@ -24,13 +24,16 @@ import logging
 import os
 import pandas as pd
 
+
 class CCAMan:
     def __init__(self, log_file="ccaman.log"):
         # Set up the logger for the class
         self.logger = logging.getLogger("CCAMan")
         self.logger.setLevel(logging.DEBUG)
         handler = logging.FileHandler(log_file)
-        handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        handler.setFormatter(
+            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+        )
         self.logger.addHandler(handler)
 
     def load_data(self, path_input: str) -> pd.DataFrame:
@@ -42,6 +45,7 @@ class CCAMan:
         except Exception as e:
             self.logger.error(f"Error in load_data: {e}")
             raise  # Optionally, re-raise the exception if it needs to be handled higher up
+
 
 # External function modified to accept a logger
 def load_data(path_input: str, logger=None) -> pd.DataFrame:
@@ -57,19 +61,29 @@ def load_data(path_input: str, logger=None) -> pd.DataFrame:
     """
     try:
         if os.path.exists("combined_data.txt"):
-            logger.info("Combined data already exists. Loading from file.") if logger else print("Combined data already exists. Loading from file.")
+            (
+                logger.info("Combined data already exists. Loading from file.")
+                if logger
+                else print("Combined data already exists. Loading from file.")
+            )
             return pd.read_csv("combined_data.txt", sep="\t", index_col=0)
         else:
             combined_data = pd.DataFrame()
             parent_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
             output_file = os.path.join(parent_dir, "data", "combined_data.txt")
-            logger.info(f"Saving combined data to {output_file}") if logger else print(f"Saving combined data to {output_file}")
+            (
+                logger.info(f"Saving combined data to {output_file}")
+                if logger
+                else print(f"Saving combined data to {output_file}")
+            )
 
             for folder_name in os.listdir(path_input):
                 folder_path = os.path.join(path_input, folder_name)
 
                 if os.path.isdir(folder_path):
-                    txt_files = [f for f in os.listdir(folder_path) if f.endswith(".txt")]
+                    txt_files = [
+                        f for f in os.listdir(folder_path) if f.endswith(".txt")
+                    ]
 
                     if txt_files:
                         file_path = os.path.join(folder_path, txt_files[0])
@@ -78,19 +92,39 @@ def load_data(path_input: str, logger=None) -> pd.DataFrame:
 
                             if combined_data.empty:
                                 combined_data = pd.DataFrame(index=df.iloc[:, 0])
-                                logger.info(f"Index set to {df.columns[0]}") if logger else print(f"Index set to {df.columns[0]}")
+                                (
+                                    logger.info(f"Index set to {df.columns[0]}")
+                                    if logger
+                                    else print(f"Index set to {df.columns[0]}")
+                                )
 
                             column_name = txt_files[0].replace(".txt", "")
 
                             if len(df) == len(combined_data):
                                 combined_data[column_name] = df.iloc[:, 1].values
                             else:
-                                logger.warning(f"Row mismatch in {folder_name}. Skipping this file.") if logger else print(f"Row mismatch in {folder_name}. Skipping this file.")
+                                (
+                                    logger.warning(
+                                        f"Row mismatch in {folder_name}. Skipping this file."
+                                    )
+                                    if logger
+                                    else print(
+                                        f"Row mismatch in {folder_name}. Skipping this file."
+                                    )
+                                )
                         except Exception as e:
-                            logger.error(f"Error processing file {file_path}: {e}") if logger else print(f"Error processing file {file_path}: {e}")
+                            (
+                                logger.error(f"Error processing file {file_path}: {e}")
+                                if logger
+                                else print(f"Error processing file {file_path}: {e}")
+                            )
 
             combined_data.to_csv(output_file, sep="\t")
-            logger.info(f"Combined data has been saved to {output_file}") if logger else print(f"Combined data has been saved to {output_file}")
+            (
+                logger.info(f"Combined data has been saved to {output_file}")
+                if logger
+                else print(f"Combined data has been saved to {output_file}")
+            )
             return combined_data
     except Exception as e:
         if logger:
@@ -100,7 +134,15 @@ def load_data(path_input: str, logger=None) -> pd.DataFrame:
         return pd.DataFrame()  # Return an empty DataFrame in case of an error
 
 
-def log_stability_data(filename: str, iteration: int, A: np.ndarray, B: np.ndarray, G_A: np.ndarray, G_B: np.ndarray, logger=None):
+def log_stability_data(
+    filename: str,
+    iteration: int,
+    A: np.ndarray,
+    B: np.ndarray,
+    G_A: np.ndarray,
+    G_B: np.ndarray,
+    logger=None,
+):
     """
     Logs the L1 and Linf norms of matrices A, B, G_A, and G_B for each iteration, with exception handling.
     """
@@ -126,7 +168,11 @@ def log_stability_data(filename: str, iteration: int, A: np.ndarray, B: np.ndarr
                 + [G_A_l1, G_A_inf]
                 + [G_B_l1, G_B_inf]
             )
-            logger.info(f"Stability data logged at iteration {iteration}") if logger else print(f"Stability data logged at iteration {iteration}")
+            (
+                logger.info(f"Stability data logged at iteration {iteration}")
+                if logger
+                else print(f"Stability data logged at iteration {iteration}")
+            )
     except Exception as e:
         if logger:
             logger.error(f"Error logging stability data at iteration {iteration}: {e}")
@@ -149,7 +195,11 @@ def init_stability_log(filename: str, k: int, logger=None):
         with open(filename, mode="w", newline="") as file:
             writer = csv.writer(file)
             writer.writerow(headers)
-            logger.info(f"Stability log file {filename} initialized with headers") if logger else print(f"Stability log file {filename} initialized with headers")
+            (
+                logger.info(f"Stability log file {filename} initialized with headers")
+                if logger
+                else print(f"Stability log file {filename} initialized with headers")
+            )
     except Exception as e:
         if logger:
             logger.error(f"Error initializing stability log file {filename}: {e}")

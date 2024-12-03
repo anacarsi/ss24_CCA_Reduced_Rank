@@ -5,75 +5,7 @@ from sklearn.decomposition import PCA
 from bs4 import BeautifulSoup
 import logging
 import requests
-
-def classify_cancerous_celllines(logger=None) -> list:
-    """
-    Create a new dataset with the classification between immortalized, cancerous, or unclassified in breast cancer tumors.
-
-    Arguments:
-    - logger: Logger for capturing logs and exceptions.
-
-    Returns:
-    - classification_df: A DataFrame with the classification of each cell line.
-    """
-    try:
-        data = pd.read_csv("combined_data.txt", sep="\t", index_col=0)
-        cell_lines = data.columns.tolist()
-        cell_line_names = []
-
-        for cell_line in cell_lines:
-            cell_line_name = cell_line.split("_")[1]  # Extract the cell line name
-            cell_line_names.append(cell_line_name)
-
-        # Attempt to store cell lines in a file
-        try:
-            store_cell_lines(pd.DataFrame(cell_line_names), logger=logger)
-        except Exception as e:
-            if logger:
-                logger.error(f"Error in store_cell_lines: {e}")
-            else:
-                print(f"Error in store_cell_lines: {e}")
-
-        if logger:
-            logger.info("Classification complete.")
-        else:
-            print("Classification complete.")
-        return cell_line_names
-
-    except Exception as e:
-        if logger:
-            logger.error(f"Error in classify_cancerous_celllines: {e}")
-        else:
-            print(f"Error in classify_cancerous_celllines: {e}")
-        return []
-
-
-def store_cell_lines(cell_line_names: pd.DataFrame, logger=None) -> None:
-    """
-    Store the cell lines in a CSV file.
-
-    Arguments:
-    - cell_line_names: The DataFrame containing the cell line names.
-    - logger: Logger for capturing logs and exceptions.
-    """
-    file_path = os.path.join(os.getcwd(), "..", "data", "cell_lines")
-    try:
-        if not os.path.exists(file_path):
-            os.makedirs(file_path)
-
-        output_file = os.path.join(file_path, "cell_line_names.csv")
-        cell_line_names.to_csv(output_file, index=False)
-
-        if logger:
-            logger.info(f"Cell lines stored in {output_file}")
-        else:
-            print(f"Cell lines stored in {output_file}")
-
-    except Exception as e:
-        if logger:
-            logger.error(f"Error storing cell lines: {e}")
-        else:
-            print(f"Error storing cell lines: {e}")
+import json
 
 
 def run_experiment(X, Y, k_values, retraction_methods, logger=None):
@@ -109,9 +41,11 @@ def run_experiment(X, Y, k_values, retraction_methods, logger=None):
         else:
             print(f"Error in run_experiment: {e}")
         return None, None
-    
-    
-def get_sensitivity_data(drug_classes: dict, cell_lines: list, logger=None) -> pd.DataFrame:
+
+
+def get_sensitivity_data(
+    drug_classes: dict, cell_lines: list, logger=None
+) -> pd.DataFrame:
     """
     Collects and stores sensitivity data for a list of cell lines.
 
@@ -127,58 +61,52 @@ def get_sensitivity_data(drug_classes: dict, cell_lines: list, logger=None) -> p
         DataFrame containing sensitivity data.
     """
     # Initialize a dictionary to store sensitivity data
-    sensitivity_dict = {"Cell Line": []}
+    sensitivity_dict = {"Cell Line": [], "Drug Name": [], "Z Score": []}
 
-    # Ensure each drug class has its own key in the dictionary
-    for drug_class in drug_classes.keys():
-        sensitivity_dict[drug_class] = []
+    filepath = os.path.join(
+        os.getcwd(), "..", "data", "sensitivity", "sensitivity_data.csv"
+    )
+    if os.path.exists(filepath):
+        sensitivity_data = pd.read_csv(filepath)
+        (
+            logger.info("Sensitivity data already exists. Loading from file.")
+            if logger
+            else print("Sensitivity data already exists. Loading from file.")
+        )
+    else:
+        sensitivity_data = pd.DataFrame(sensitivity_dict)
+        parentdir = os.path.join(os.getcwd(), "..", "data", "sensitivity")
+        for folder_name in os.listdir(parentdir):
+            # Remove the "s_" prefix from the folder name
+            folder_name = folder_name[2:]
+            folder_path = os.path.join(parentdir, folder_name)
 
-    for cell_line in cell_lines:
-        url = f"https://www.cancerrxgene.org/celllines/{cell_line}"
-        try:
-            response = requests.get(url)
-            if response.status_code != 200:
-                logger.error(f"Failed to retrieve data for {cell_line}: {response.status_code}")
-                continue
+            if os.path.exists(folder_path):
+                sensitivity_line = pd.read_csv(folder_path)
 
-            soup = BeautifulSoup(response.content, "html.parser")
-            sensitivity_dict["Cell Line"].append(cell_line)
+                # Filter rows by drug names that exist in the drug_classes dictionary
+                for drug_class, drugs in drug_classes.items():
+                    for drug in drugs:
+                        # Filter rows where the 'Drug Name' column matches the current drug
+                        drug_rows = sensitivity_line[
+                            sensitivity_line["Drug Name"].str.contains(
+                                drug, case=False, na=False
+                            )
+                        ]
 
-            for drug_class, drugs in drug_classes.items():
-                z_scores = []
-                for drug in drugs:
-                    try:
-                        drug_element = soup.find("td", string=drug)
-                        if drug_element:
-                            z_score_element = drug_element.find_next("td")
-                            if z_score_element:
-                                z_score = float(z_score_element.text.strip())
-                                z_scores.append(z_score)
-                                break  # Exit loop after finding the first match
-                    except Exception as e:
-                        if logger:
-                            logger.error(f"Error extracting Z-score for {drug}: {e}")
-                        else:
-                            print(f"Error extracting Z-score for {drug}: {e}")
-                # Append the average Z-score for this drug class (or NaN if none found)
-                sensitivity_dict[drug_class].append(
-                    sum(z_scores) / len(z_scores) if z_scores else float("nan")
-                )
-
-        except Exception as e:
-            if logger:
-                logger.error(f"Error processing cell line {cell_line}: {e}")
-            else:
-                print(f"Error processing cell line {cell_line}: {e}")
-
-    # Convert the dictionary to a DataFrame
-    sensitivity_data = pd.DataFrame(sensitivity_dict)
+                        for _, row in drug_rows.iterrows():
+                            sensitivity_dict["Cell Line"].append(folder_name)
+                            sensitivity_dict["Drug Name"].append(row["Drug Name"])
+                            sensitivity_dict["Z Score"].append(row["Z Score"])
 
     # Store the sensitivity data
     try:
-        filepath = os.path.join(os.getcwd(), "..", "data", "sensitivity_data.csv")
         sensitivity_data.to_csv(filepath, index=False)
-        logger.info(f"Sensitivity data stored in {filepath}")
+        (
+            logger.info(f"Sensitivity data stored in {filepath}")
+            if logger
+            else print(f"Sensitivity data stored in {filepath}")
+        )
     except Exception as e:
         if logger:
             logger.error(f"Error storing sensitivity data: {e}")

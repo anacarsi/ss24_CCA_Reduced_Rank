@@ -17,21 +17,26 @@ from ..utils.utils import load_data
 from classify import classify_cancerous_celllines, get_sensitivity_data
 import json
 import pandas as pd
+import os
+
 
 class CCAMan:
     def __init__(self, log_file="ccaman.log"):
         self.logger = logging.getLogger("CCAMan")
         self.logger.setLevel(logging.DEBUG)
         handler = logging.FileHandler(log_file)
-        handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        handler.setFormatter(
+            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+        )
         self.logger.addHandler(handler)
         self.logger.info("CCAMan initialized")
-        try: 
+        try:
             with open("config.json", "r") as f:
                 self.config = json.load(f)
         except Exception as e:
             self.logger.error(f"Error loading config file: {e}")
             sys.exit(1)
+        self.cell_line_names = []
 
     def load_data(self) -> pd.DataFrame:
         """
@@ -47,20 +52,29 @@ class CCAMan:
         # Load data
         self.data = self.load_data()
         self.logger.info("Data loaded successfully.")
-        self.cell_lines_names = classify_cancerous_celllines(self.logger)
 
+        # Load the cell lines to extract sensitivity data
+        filepath = os.join(
+            os.getcwd(), "..", "data", "cell_lines", "cell_line_names_filtered.json"
+        )
+        try:
+            with open(filepath, "w") as json_file:
+                self.cell_line_names = json.load(json_file)
+        except Exception as e:
+            if self.logger:
+                self.logger.error(f"Error loading filtered cell line names: {e}")
+            else:
+                print(f"Error loading filtered cell line names: {e}")
+
+        # Extract the sensitivity data
         drug_classes = {
-            "HER2 inhibitors": ["lapatinib"], 
+            "HER2 inhibitors": ["lapatinib"],
             "Hormone therapy": ["tamoxifen", "anastrozole", "letrozole", "exemestane"],
             "PARP inhibitors": ["olaparib"],
             "CDK4/6 inhibitors": ["palbociclib"],
             "PI3K inhibitors": ["alpelisib"],
         }
-        self.sensitivity_data = get_sensitivity_data(drug_classes, self.cell_lines_names, self.logger)
-
-
-        # Preprocessing
-
-        # Classify:
-        # - Classify cancerous cell lines
-        # - Classify genes in pathways
+        self.sensitivity_data = get_sensitivity_data(
+            drug_classes, self.cell_lines_names, self.logger
+        )
+        print(self.sensitivity_data.head())
