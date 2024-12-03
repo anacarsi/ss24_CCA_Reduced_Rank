@@ -13,8 +13,8 @@ Higher values indicate higher expression of the gene in that cell line, zero val
 
 import logging
 import sys
-from ..utils.utils import load_data
-from classify import classify_cancerous_celllines, get_sensitivity_data
+from utils.utils import load_data
+from classify import get_sensitivity_data
 import json
 import pandas as pd
 import os
@@ -30,13 +30,19 @@ class CCAMan:
         )
         self.logger.addHandler(handler)
         self.logger.info("CCAMan initialized")
+
+        config_path = os.path.join(os.getcwd(), "..", "configs", "config.json")
         try:
-            with open("config.json", "r") as f:
+            with open(config_path, "r") as f:
                 self.config = json.load(f)
         except Exception as e:
             self.logger.error(f"Error loading config file: {e}")
             sys.exit(1)
+
         self.cell_line_names = []
+
+        self.load_data()
+        self.logger.info("Data loaded successfully.")
 
     def load_data(self) -> pd.DataFrame:
         """
@@ -49,12 +55,8 @@ class CCAMan:
             raise e
 
     def analyze(self):
-        # Load data
-        self.data = self.load_data()
-        self.logger.info("Data loaded successfully.")
-
         # Load the cell lines to extract sensitivity data
-        filepath = os.join(
+        filepath = os.path.join(
             os.getcwd(), "..", "data", "cell_lines", "cell_line_names_filtered.json"
         )
         try:
@@ -75,6 +77,6 @@ class CCAMan:
             "PI3K inhibitors": ["alpelisib"],
         }
         self.sensitivity_data = get_sensitivity_data(
-            drug_classes, self.cell_lines_names, self.logger
+            drug_classes, self.cell_line_names, self.logger
         )
         print(self.sensitivity_data.head())
