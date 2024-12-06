@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 
+
 def run_experiment(X, Y, k_values, retraction_methods, logger=None):
     """
     Runs a CCA experiment with specified parameters.
@@ -60,15 +61,21 @@ def get_sensitivity_data(
     # Flatten the drug classes into a list for filtering
     filter_drugs = [drug.lower() for drugs in drug_classes.values() for drug in drugs]
 
-    filepath = os.path.join(os.getcwd(), "..", "data", "sensitivity", "sensitivity_data.csv")
-        
+    filepath = os.path.join(
+        os.getcwd(), "..", "data", "sensitivity", "sensitivity_data.csv"
+    )
+
     if os.path.exists(filepath):
         sensitivity_data = pd.read_csv(filepath)
-        logger.info("Sensitivity data already exists. Loading from file.") if logger else print("Sensitivity data already exists. Loading from file.")
+        (
+            logger.info("Sensitivity data already exists. Loading from file.")
+            if logger
+            else print("Sensitivity data already exists. Loading from file.")
+        )
     else:
         sensitivity_data = pd.DataFrame(sensitivity_dict)
-        parentdir = os.path.join(os.getcwd(), '..', "data", "sensitivity")
-        
+        parentdir = os.path.join(os.getcwd(), "..", "data", "sensitivity")
+
         # Process each folder corresponding to a cell line
         for folder_name in os.listdir(parentdir):
             # Remove the "s_" prefix from the folder name
@@ -81,13 +88,23 @@ def get_sensitivity_data(
                 try:
                     sensitivity_line = pd.read_csv(folder_path)
                     # Filter the data based on the drug classes
-                    sensitivity_line = sensitivity_line[sensitivity_line["Drug Name"].str.lower().isin(filter_drugs)]
+                    sensitivity_line = sensitivity_line[
+                        sensitivity_line["Drug Name"].str.lower().isin(filter_drugs)
+                    ]
                     # Append filtered data to the dictionary
                     for _, row in sensitivity_line.iterrows():
                         sensitivity_dict["Cell Line"].append(cell_line)
                         sensitivity_dict["Drug Name"].append(row["Drug Name"])
                         sensitivity_dict["Z Score"].append(row["Z Score"])
-                        logger.info(f"Sensitive data for {cell_line} and {row['Drug Name']} collected.") if logger else print(f"Sensitive data for {cell_line} and {row['Drug Name']} collected.")
+                        (
+                            logger.info(
+                                f"Sensitive data for {cell_line} and {row['Drug Name']} collected."
+                            )
+                            if logger
+                            else print(
+                                f"Sensitive data for {cell_line} and {row['Drug Name']} collected."
+                            )
+                        )
                 except Exception as e:
                     if logger:
                         logger.error(f"Error processing cell line {cell_line}: {e}")
@@ -99,7 +116,11 @@ def get_sensitivity_data(
         # Store the sensitivity data
         try:
             sensitivity_data.to_csv(filepath, index=False)
-            logger.info(f"Sensitivity data stored in {filepath}") if logger else print(f"Sensitivity data stored in {filepath}")
+            (
+                logger.info(f"Sensitivity data stored in {filepath}")
+                if logger
+                else print(f"Sensitivity data stored in {filepath}")
+            )
         except Exception as e:
             if logger:
                 logger.error(f"Error storing sensitivity data: {e}")
@@ -122,7 +143,6 @@ def standard_cca(X, Y, k, logger=None):
     - tuple : Results of CCA
     """
     try:
-        # Example placeholder for actual CCA computation
         correlations = np.random.rand(k)
         if logger:
             logger.info("Standard CCA completed successfully.")
@@ -137,4 +157,3 @@ def standard_cca(X, Y, k, logger=None):
         else:
             print(f"Error in standard_cca: {e}")
         return None, None, None, None
-    

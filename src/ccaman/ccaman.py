@@ -12,12 +12,15 @@ Higher values indicate higher expression of the gene in that cell line, zero val
 """
 
 import logging
-import sys
-from utils.utils import combine_data
-from classify import get_sensitivity_data
+from .utils.utils import combine_data
+from .classify import get_sensitivity_data
 import json
 import pandas as pd
 import os
+from sklearn.cross_decomposition import CCA
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 class CCAMan:
@@ -71,3 +74,46 @@ class CCAMan:
         self.sensitivity_data = get_sensitivity_data(
             drug_classes, self.cell_line_names, self.logger
         )
+
+        # Perform the analysis
+        self.logger.info("Starting analysis pipeline.")
+        # Pivot sensitivity data to have drugs as columns and cell lines as rows
+        sensitivity_pivot = self.sensitivity_data.pivot(index='Cell Line', columns='Drug Name', values='Z Score')
+
+        # Align the gene expression data and drug sensitivity data by cell lines
+        gene_expression = self.genes_to_cellline.T # transpose because the genes are in the rows
+        common_cell_lines = sensitivity_pivot.index.intersection(gene_expression.index)
+        sensitivity_pivot = sensitivity_pivot.loc[common_cell_lines]
+        gene_expression = gene_expression.loc[common_cell_lines]
+
+        # Normalize both datasets
+        scaler = StandardScaler()
+        X = scaler.fit_transform(gene_expression)  # Gene expression data
+        Y = scaler.fit_transform(sensitivity_pivot)  # Z Scores
+
+        # Perform Canonical Correlation Analysis (CCA)
+        cca = CCA(n_components=2)
+        cca.fit(X, Y)
+        X_c, Y_c = cca.transform(X, Y)
+
+        # Calculate the canonical correlation coefficients
+        correlations = np.corrcoef(X_c.T, Y_c.T)[:2, 2:]
+
+        self.logger.info("CCA completed successfully.")
+        self.logger.info(f"Correlations: {correlations}")
+        print(f"Correlations: {correlations}")
+        # Initialize and fit CCA
+        cca = CCA(n_components=min(X.shape[1], Y.shape[1]))  # Number of components
+        cca.fit(X, Y)
+
+        # Transform the datasets
+        X_c, Y_c = cca.transform(X, Y)
+
+        corrs = [np.corrcoef(X_c[:, i], Y_c[:, i])[0, 1] for i in range(X_c.shape[1])]
+        print(f"Canonical Correlations: {corrs}")   
+
+        plt.scatter(X_c[:, 0], Y_c[:, 0], alpha=0.7)
+        plt.title("Canonical Variables (First Component)")
+        plt.xlabel("Gene Expression (Canonical Variable 1)")
+        plt.ylabel("Drug Sensitivity (Canonical Variable 1)")
+        plt.show()

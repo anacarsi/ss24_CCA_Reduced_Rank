@@ -15,6 +15,7 @@ File structure:
     Inside each folder is a .txt file containing gene expression data for that specific cell line
 """
 
+
 # External function modified to accept a logger
 def combine_data(logger=None) -> pd.DataFrame:
     """
@@ -27,9 +28,15 @@ def combine_data(logger=None) -> pd.DataFrame:
     - genes_to_cellline: The combined DataFrame, or an empty DataFrame if an error occurs.
     """
     try:
-        filepath = os.path.join(os.getcwd(), "..", "data", "GSE48213", "genes_to_cellline.csv")
+        filepath = os.path.join(
+            os.getcwd(), "..", "data", "GSE48213", "genes_to_cellline.csv"
+        )
         if os.path.exists(filepath):
-            logger.info("Combined data already exists. Loading from file.") if logger else print("Combined data already exists. Loading from file.")
+            (
+                logger.info("Combined data already exists. Loading from file.")
+                if logger
+                else print("Combined data already exists. Loading from file.")
+            )
             return pd.read_csv(filepath, sep="\t", index_col=0)
         else:
             print("Combining data 2")
@@ -168,6 +175,7 @@ def init_stability_log(filename: str, k: int, logger=None):
             logger.error(f"Error initializing stability log file {filename}: {e}")
         else:
             print(f"Error initializing stability log file {filename}: {e}")
+
 
 def get_unique_drugs(sensitivity_data: pd.DataFrame) -> list:
     """
