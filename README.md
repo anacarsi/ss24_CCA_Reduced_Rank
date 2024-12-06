@@ -87,5 +87,4 @@ To run the code and experiments, make sure you have the following installed:
 
 You can install the dependencies with:
 ```bash
-pip install numpy scipy matplotlib pandas pymanopt
-
+pip install -e .
