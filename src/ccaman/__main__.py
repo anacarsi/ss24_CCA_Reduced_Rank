@@ -7,7 +7,8 @@ import argparse
 import os
 import pandas as pd
 from preprocessing import log2_transform, preprocessing
-from ccaman import CCAMan 
+from ccaman import CCAMan
+
 
 def parse_args():
     """Parse command-line arguments."""
@@ -32,6 +33,7 @@ def parse_args():
     )
 
     return parser.parse_args()
+
 
 def main():
     args = parse_args()
@@ -66,6 +68,7 @@ def main():
         results, scores = run_experiment(X, Y, k_values, retraction_methods)
         print("CCA experiment completed.")
     """
+
 
 if __name__ == "__main__":
     main()

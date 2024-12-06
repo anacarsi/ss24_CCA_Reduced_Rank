@@ -1,13 +1,8 @@
 # Ana Carsi 2024
 import os
 import pandas as pd
-import gseapy as gp
-import mygene
 import csv
 import numpy as np
-import requests
-import time
-import logging
 
 
 """
@@ -20,78 +15,44 @@ File structure:
     Inside each folder is a .txt file containing gene expression data for that specific cell line
 """
 
-import logging
-import os
-import pandas as pd
-
-
-class CCAMan:
-    def __init__(self, log_file="ccaman.log"):
-        # Set up the logger for the class
-        self.logger = logging.getLogger("CCAMan")
-        self.logger.setLevel(logging.DEBUG)
-        handler = logging.FileHandler(log_file)
-        handler.setFormatter(
-            logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-        )
-        self.logger.addHandler(handler)
-
-    def load_data(self, path_input: str) -> pd.DataFrame:
-        """
-        Calls the global load_data function and ensures it logs through this instance's logger.
-        """
-        try:
-            return load_data(path_input, logger=self.logger)
-        except Exception as e:
-            self.logger.error(f"Error in load_data: {e}")
-            raise  # Optionally, re-raise the exception if it needs to be handled higher up
-
-
 # External function modified to accept a logger
-def load_data(path_input: str, logger=None) -> pd.DataFrame:
+def combine_data(logger=None) -> pd.DataFrame:
     """
     Function to combine the cell line files into a single DataFrame with exception handling.
 
     Arguments:
-    - path_input: The root directory containing folders with .txt files.
     - logger: Optional logger instance for logging exceptions.
 
     Returns:
-    - combined_data: The combined DataFrame, or an empty DataFrame if an error occurs.
+    - genes_to_cellline: The combined DataFrame, or an empty DataFrame if an error occurs.
     """
     try:
-        if os.path.exists("combined_data.txt"):
-            (
-                logger.info("Combined data already exists. Loading from file.")
-                if logger
-                else print("Combined data already exists. Loading from file.")
-            )
-            return pd.read_csv("combined_data.txt", sep="\t", index_col=0)
+        filepath = os.path.join(os.getcwd(), "..", "data", "GSE48213", "genes_to_cellline.csv")
+        if os.path.exists(filepath):
+            logger.info("Combined data already exists. Loading from file.") if logger else print("Combined data already exists. Loading from file.")
+            return pd.read_csv(filepath, sep="\t", index_col=0)
         else:
-            combined_data = pd.DataFrame()
-            parent_dir = os.path.abspath(os.path.join(os.getcwd(), ".."))
-            output_file = os.path.join(parent_dir, "data", "combined_data.txt")
+            print("Combining data 2")
+            genes_to_cellline = pd.DataFrame()
             (
-                logger.info(f"Saving combined data to {output_file}")
+                logger.info(f"Saving combined data to {filepath}")
                 if logger
-                else print(f"Saving combined data to {output_file}")
+                else print(f"Saving combined data to {filepath}")
             )
-
-            for folder_name in os.listdir(path_input):
-                folder_path = os.path.join(path_input, folder_name)
-
+            parentdir = os.path.join(filepath, "..")
+            for folder_name in os.listdir(parentdir):
+                folder_path = os.path.join(parentdir, folder_name)
                 if os.path.isdir(folder_path):
                     txt_files = [
                         f for f in os.listdir(folder_path) if f.endswith(".txt")
                     ]
-
                     if txt_files:
                         file_path = os.path.join(folder_path, txt_files[0])
                         try:
                             df = pd.read_csv(file_path, sep="\t", header=0)
 
-                            if combined_data.empty:
-                                combined_data = pd.DataFrame(index=df.iloc[:, 0])
+                            if genes_to_cellline.empty:
+                                genes_to_cellline = pd.DataFrame(index=df.iloc[:, 0])
                                 (
                                     logger.info(f"Index set to {df.columns[0]}")
                                     if logger
@@ -99,9 +60,9 @@ def load_data(path_input: str, logger=None) -> pd.DataFrame:
                                 )
 
                             column_name = txt_files[0].replace(".txt", "")
-
-                            if len(df) == len(combined_data):
-                                combined_data[column_name] = df.iloc[:, 1].values
+                            column_name = column_name.split("_")[1]
+                            if len(df) == len(genes_to_cellline):
+                                genes_to_cellline[column_name] = df.iloc[:, 1].values
                             else:
                                 (
                                     logger.warning(
@@ -119,13 +80,15 @@ def load_data(path_input: str, logger=None) -> pd.DataFrame:
                                 else print(f"Error processing file {file_path}: {e}")
                             )
 
-            combined_data.to_csv(output_file, sep="\t")
+            genes_to_cellline.to_csv(filepath, sep="\t")
             (
-                logger.info(f"Combined data has been saved to {output_file}")
+                logger.info(f"Combined data has been saved to {filepath}")
                 if logger
-                else print(f"Combined data has been saved to {output_file}")
+                else print(f"Combined data has been saved to {filepath}")
             )
-            return combined_data
+
+            print("Wrote to file")
+            return genes_to_cellline
     except Exception as e:
         if logger:
             logger.error(f"Error in load_data: {e}")
@@ -205,3 +168,15 @@ def init_stability_log(filename: str, k: int, logger=None):
             logger.error(f"Error initializing stability log file {filename}: {e}")
         else:
             print(f"Error initializing stability log file {filename}: {e}")
+
+def get_unique_drugs(sensitivity_data: pd.DataFrame) -> list:
+    """
+    Extracts unique drug names from the sensitivity data DataFrame.
+
+    Arguments:
+    - sensitivity_data: pd.DataFrame : DataFrame containing sensitivity data.
+
+    Returns:
+    - list : List of unique drug names.
+    """
+    return sensitivity_data["Drug Name"].unique().tolist()

@@ -13,7 +13,7 @@ Higher values indicate higher expression of the gene in that cell line, zero val
 
 import logging
 import sys
-from utils.utils import load_data
+from utils.utils import combine_data
 from classify import get_sensitivity_data
 import json
 import pandas as pd
@@ -22,6 +22,8 @@ import os
 
 class CCAMan:
     def __init__(self, log_file="ccaman.log"):
+        if os.path.exists(log_file):
+            os.remove(log_file)
         self.logger = logging.getLogger("CCAMan")
         self.logger.setLevel(logging.DEBUG)
         handler = logging.FileHandler(log_file)
@@ -30,18 +32,8 @@ class CCAMan:
         )
         self.logger.addHandler(handler)
         self.logger.info("CCAMan initialized")
-
-        config_path = os.path.join(os.getcwd(), "..", "configs", "config.json")
-        try:
-            with open(config_path, "r") as f:
-                self.config = json.load(f)
-        except Exception as e:
-            self.logger.error(f"Error loading config file: {e}")
-            sys.exit(1)
-
         self.cell_line_names = []
-
-        self.load_data()
+        self.genes_to_cellline = self.load_data()
         self.logger.info("Data loaded successfully.")
 
     def load_data(self) -> pd.DataFrame:
@@ -49,7 +41,7 @@ class CCAMan:
         Calls the global load_data function and ensures it logs through this instance's logger.
         """
         try:
-            return load_data(self.config["file_path"], logger=self.logger)
+            return combine_data(logger=self.logger)
         except Exception as e:
             self.logger.error(f"Error in load_data: {e}")
             raise e
@@ -70,13 +62,12 @@ class CCAMan:
 
         # Extract the sensitivity data
         drug_classes = {
-            "HER2 inhibitors": ["lapatinib"],
-            "Hormone therapy": ["tamoxifen", "anastrozole", "letrozole", "exemestane"],
-            "PARP inhibitors": ["olaparib"],
-            "CDK4/6 inhibitors": ["palbociclib"],
-            "PI3K inhibitors": ["alpelisib"],
+            "HER2 inhibitors": ["Lapatinib"],
+            "Hormone therapy": ["Tamoxifen"],
+            "PARP inhibitors": ["Olaparib"],
+            "CDK4/6 inhibitors": ["Palbociclib"],
+            "PI3K inhibitors": ["Alpelisib"],
         }
         self.sensitivity_data = get_sensitivity_data(
             drug_classes, self.cell_line_names, self.logger
         )
-        print(self.sensitivity_data.head())

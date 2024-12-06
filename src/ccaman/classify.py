@@ -1,12 +1,6 @@
 import os
 import pandas as pd
 import numpy as np
-from sklearn.decomposition import PCA
-from bs4 import BeautifulSoup
-import logging
-import requests
-import json
-
 
 def run_experiment(X, Y, k_values, retraction_methods, logger=None):
     """
@@ -63,55 +57,54 @@ def get_sensitivity_data(
     # Initialize a dictionary to store sensitivity data
     sensitivity_dict = {"Cell Line": [], "Drug Name": [], "Z Score": []}
 
-    filepath = os.path.join(
-        os.getcwd(), "..", "data", "sensitivity", "sensitivity_data.csv"
-    )
+    # Flatten the drug classes into a list for filtering
+    filter_drugs = [drug.lower() for drugs in drug_classes.values() for drug in drugs]
+
+    filepath = os.path.join(os.getcwd(), "..", "data", "sensitivity", "sensitivity_data.csv")
+        
     if os.path.exists(filepath):
         sensitivity_data = pd.read_csv(filepath)
-        (
-            logger.info("Sensitivity data already exists. Loading from file.")
-            if logger
-            else print("Sensitivity data already exists. Loading from file.")
-        )
+        logger.info("Sensitivity data already exists. Loading from file.") if logger else print("Sensitivity data already exists. Loading from file.")
     else:
         sensitivity_data = pd.DataFrame(sensitivity_dict)
-        parentdir = os.path.join(os.getcwd(), "..", "data", "sensitivity")
+        parentdir = os.path.join(os.getcwd(), '..', "data", "sensitivity")
+        
+        # Process each folder corresponding to a cell line
         for folder_name in os.listdir(parentdir):
             # Remove the "s_" prefix from the folder name
-            folder_name = folder_name[2:]
+            cell_line = folder_name[2:]
+            # Remove the ".csv" extension from the folder name
+            cell_line = cell_line[:-4]
             folder_path = os.path.join(parentdir, folder_name)
 
             if os.path.exists(folder_path):
-                sensitivity_line = pd.read_csv(folder_path)
+                try:
+                    sensitivity_line = pd.read_csv(folder_path)
+                    # Filter the data based on the drug classes
+                    sensitivity_line = sensitivity_line[sensitivity_line["Drug Name"].str.lower().isin(filter_drugs)]
+                    # Append filtered data to the dictionary
+                    for _, row in sensitivity_line.iterrows():
+                        sensitivity_dict["Cell Line"].append(cell_line)
+                        sensitivity_dict["Drug Name"].append(row["Drug Name"])
+                        sensitivity_dict["Z Score"].append(row["Z Score"])
+                        logger.info(f"Sensitive data for {cell_line} and {row['Drug Name']} collected.") if logger else print(f"Sensitive data for {cell_line} and {row['Drug Name']} collected.")
+                except Exception as e:
+                    if logger:
+                        logger.error(f"Error processing cell line {cell_line}: {e}")
+                    else:
+                        print(f"Error processing cell line {cell_line}: {e}")
 
-                # Filter rows by drug names that exist in the drug_classes dictionary
-                for drug_class, drugs in drug_classes.items():
-                    for drug in drugs:
-                        # Filter rows where the 'Drug Name' column matches the current drug
-                        drug_rows = sensitivity_line[
-                            sensitivity_line["Drug Name"].str.contains(
-                                drug, case=False, na=False
-                            )
-                        ]
+        sensitivity_data = pd.DataFrame(sensitivity_dict)
 
-                        for _, row in drug_rows.iterrows():
-                            sensitivity_dict["Cell Line"].append(folder_name)
-                            sensitivity_dict["Drug Name"].append(row["Drug Name"])
-                            sensitivity_dict["Z Score"].append(row["Z Score"])
-
-    # Store the sensitivity data
-    try:
-        sensitivity_data.to_csv(filepath, index=False)
-        (
-            logger.info(f"Sensitivity data stored in {filepath}")
-            if logger
-            else print(f"Sensitivity data stored in {filepath}")
-        )
-    except Exception as e:
-        if logger:
-            logger.error(f"Error storing sensitivity data: {e}")
-        else:
-            print(f"Error storing sensitivity data: {e}")
+        # Store the sensitivity data
+        try:
+            sensitivity_data.to_csv(filepath, index=False)
+            logger.info(f"Sensitivity data stored in {filepath}") if logger else print(f"Sensitivity data stored in {filepath}")
+        except Exception as e:
+            if logger:
+                logger.error(f"Error storing sensitivity data: {e}")
+            else:
+                print(f"Error storing sensitivity data: {e}")
 
     return sensitivity_data
 
@@ -144,3 +137,4 @@ def standard_cca(X, Y, k, logger=None):
         else:
             print(f"Error in standard_cca: {e}")
         return None, None, None, None
+    
