@@ -1,6 +1,7 @@
 {
-    "file_path": "./data/GSE48213",
+    "file_path": "data/GSE48213",
     "log_level": "INFO",
     "batch_size": 32,
-    "learning_rate": 0.01
+    "learning_rate": 0.01,
+    "cell_lines_with_research": ["AU565", "HCC1143", "HCC1395", "HCC1419", "HCC1428", "HCC1569", "HCC1599", "HCC18064", "HCC1937", "HCC1954", "HCC202", "HCC2218", "HCC38", "HCC70", "MCF7", "T47D"]
 }

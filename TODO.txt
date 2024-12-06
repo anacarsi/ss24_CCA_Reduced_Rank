@@ -1,7 +1,5 @@
 TODO:
 
--descargar en https://www.cancerrxgene.org/cellline/HCC1954/749709 csv para cada linea cancerígena -> poner en classify que se haga en:
-    linea por linea guardando todos los medicamentos y sus Z scores? -> entonces tengo una matriz tridimensiona
-    
--escoger solo los top 4 redactados
 -hacer 5 análisis en total para ver que genes tienen mas sensibilidad para cada tipo de medicamento.
+- ahora mismo todos los medicamentos se analizan en sensitivity data. nuestro Y debe ser los Z scores para un medicamento por cada cell line. 
+- comprobar si log transformation

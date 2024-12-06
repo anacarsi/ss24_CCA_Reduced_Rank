@@ -3,8 +3,6 @@ import os
 import pandas as pd
 import csv
 import numpy as np
-
-
 """
 Dataset overview:
     56 breast cancer cell lines were profiled
@@ -14,9 +12,8 @@ File structure:
     Each folder corresponds to a different breast cancer cell line
     Inside each folder is a .txt file containing gene expression data for that specific cell line
 """
+cell_lines_with_research =["AU565", "HCC1143", "HCC1395", "HCC1419", "HCC1428", "HCC1569", "HCC1599", "HCC18064", "HCC1937", "HCC1954", "HCC202", "HCC2218", "HCC38", "HCC70", "MCF7", "T47D"]
 
-
-# External function modified to accept a logger
 def combine_data(logger=None) -> pd.DataFrame:
     """
     Function to combine the cell line files into a single DataFrame with exception handling.
@@ -31,6 +28,9 @@ def combine_data(logger=None) -> pd.DataFrame:
         filepath = os.path.join(
             os.getcwd(), "..", "data", "GSE48213", "genes_to_cellline.csv"
         )
+        # delete the file if it exists
+        if os.path.exists(filepath):
+            os.remove(filepath)
         if os.path.exists(filepath):
             (
                 logger.info("Combined data already exists. Loading from file.")
@@ -39,7 +39,6 @@ def combine_data(logger=None) -> pd.DataFrame:
             )
             return pd.read_csv(filepath, sep="\t", index_col=0)
         else:
-            print("Combining data 2")
             genes_to_cellline = pd.DataFrame()
             (
                 logger.info(f"Saving combined data to {filepath}")
@@ -48,44 +47,49 @@ def combine_data(logger=None) -> pd.DataFrame:
             )
             parentdir = os.path.join(filepath, "..")
             for folder_name in os.listdir(parentdir):
-                folder_path = os.path.join(parentdir, folder_name)
-                if os.path.isdir(folder_path):
-                    txt_files = [
-                        f for f in os.listdir(folder_path) if f.endswith(".txt")
-                    ]
-                    if txt_files:
-                        file_path = os.path.join(folder_path, txt_files[0])
-                        try:
-                            df = pd.read_csv(file_path, sep="\t", header=0)
+                # Check if folder corresponds to a cell line in the research
+                cell_line_name = folder_name.split("_")[1]
+                cell_line_name = cell_line_name.split(".")[0]
 
-                            if genes_to_cellline.empty:
-                                genes_to_cellline = pd.DataFrame(index=df.iloc[:, 0])
-                                (
-                                    logger.info(f"Index set to {df.columns[0]}")
-                                    if logger
-                                    else print(f"Index set to {df.columns[0]}")
-                                )
+                if cell_line_name in cell_lines_with_research:
+                    folder_path = os.path.join(parentdir, folder_name)
+                    if os.path.isdir(folder_path):
+                        txt_files = [
+                            f for f in os.listdir(folder_path) if f.endswith(".txt")
+                        ]
+                        if txt_files:
+                            file_path = os.path.join(folder_path, txt_files[0])
+                            try:
+                                df = pd.read_csv(file_path, sep="\t", header=0)
 
-                            column_name = txt_files[0].replace(".txt", "")
-                            column_name = column_name.split("_")[1]
-                            if len(df) == len(genes_to_cellline):
-                                genes_to_cellline[column_name] = df.iloc[:, 1].values
-                            else:
+                                if genes_to_cellline.empty:
+                                    genes_to_cellline = pd.DataFrame(index=df.iloc[:, 0])
+                                    (
+                                        logger.info(f"Index set to {df.columns[0]}")
+                                        if logger
+                                        else print(f"Index set to {df.columns[0]}")
+                                    )
+
+                                column_name = txt_files[0].replace(".txt", "")
+                                column_name = column_name.split("_")[1]
+                                if len(df) == len(genes_to_cellline):
+                                    genes_to_cellline[column_name] = df.iloc[:, 1].values
+                                else:
+                                    (
+                                        logger.warning(
+                                            f"Row mismatch in {folder_name}. Skipping this file."
+                                        )
+                                        if logger
+                                        else print(
+                                            f"Row mismatch in {folder_name}. Skipping this file."
+                                        )
+                                    )
+                            except Exception as e:
                                 (
-                                    logger.warning(
-                                        f"Row mismatch in {folder_name}. Skipping this file."
-                                    )
+                                    logger.error(f"Error processing file {file_path}: {e}")
                                     if logger
-                                    else print(
-                                        f"Row mismatch in {folder_name}. Skipping this file."
-                                    )
+                                    else print(f"Error processing file {file_path}: {e}")
                                 )
-                        except Exception as e:
-                            (
-                                logger.error(f"Error processing file {file_path}: {e}")
-                                if logger
-                                else print(f"Error processing file {file_path}: {e}")
-                            )
 
             genes_to_cellline.to_csv(filepath, sep="\t")
             (

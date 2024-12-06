@@ -7,8 +7,12 @@ setup(
     author="Your Name",
     author_email="your.email@example.com",
     url="https://github.com/your-repo-url",  # Optional: Replace with your repository URL
-    packages=find_packages(where="src"),  # Automatically find packages in the src directory
-    package_dir={"": "src"},  # Tell setuptools to look for packages in the src directory
+    packages=find_packages(
+        where="src"
+    ),  # Automatically find packages in the src directory
+    package_dir={
+        "": "src"
+    },  # Tell setuptools to look for packages in the src directory
     python_requires=">=3.7",  # Specify the Python version
     install_requires=[
         "numpy",
