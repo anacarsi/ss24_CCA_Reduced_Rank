@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import csv
 import numpy as np
+
 """
 Dataset overview:
     56 breast cancer cell lines were profiled
@@ -12,7 +13,25 @@ File structure:
     Each folder corresponds to a different breast cancer cell line
     Inside each folder is a .txt file containing gene expression data for that specific cell line
 """
-cell_lines_with_research =["AU565", "HCC1143", "HCC1395", "HCC1419", "HCC1428", "HCC1569", "HCC1599", "HCC18064", "HCC1937", "HCC1954", "HCC202", "HCC2218", "HCC38", "HCC70", "MCF7", "T47D"]
+cell_lines_with_research = [
+    "AU565",
+    "HCC1143",
+    "HCC1395",
+    "HCC1419",
+    "HCC1428",
+    "HCC1569",
+    "HCC1599",
+    "HCC18064",
+    "HCC1937",
+    "HCC1954",
+    "HCC202",
+    "HCC2218",
+    "HCC38",
+    "HCC70",
+    "MCF7",
+    "T47D",
+]
+
 
 def combine_data(logger=None) -> pd.DataFrame:
     """
@@ -63,7 +82,9 @@ def combine_data(logger=None) -> pd.DataFrame:
                                 df = pd.read_csv(file_path, sep="\t", header=0)
 
                                 if genes_to_cellline.empty:
-                                    genes_to_cellline = pd.DataFrame(index=df.iloc[:, 0])
+                                    genes_to_cellline = pd.DataFrame(
+                                        index=df.iloc[:, 0]
+                                    )
                                     (
                                         logger.info(f"Index set to {df.columns[0]}")
                                         if logger
@@ -73,7 +94,9 @@ def combine_data(logger=None) -> pd.DataFrame:
                                 column_name = txt_files[0].replace(".txt", "")
                                 column_name = column_name.split("_")[1]
                                 if len(df) == len(genes_to_cellline):
-                                    genes_to_cellline[column_name] = df.iloc[:, 1].values
+                                    genes_to_cellline[column_name] = df.iloc[
+                                        :, 1
+                                    ].values
                                 else:
                                     (
                                         logger.warning(
@@ -86,9 +109,13 @@ def combine_data(logger=None) -> pd.DataFrame:
                                     )
                             except Exception as e:
                                 (
-                                    logger.error(f"Error processing file {file_path}: {e}")
+                                    logger.error(
+                                        f"Error processing file {file_path}: {e}"
+                                    )
                                     if logger
-                                    else print(f"Error processing file {file_path}: {e}")
+                                    else print(
+                                        f"Error processing file {file_path}: {e}"
+                                    )
                                 )
 
             genes_to_cellline.to_csv(filepath, sep="\t")
@@ -98,7 +125,7 @@ def combine_data(logger=None) -> pd.DataFrame:
                 else print(f"Combined data has been saved to {filepath}")
             )
 
-            print("Wrote to file")
+            print("[CCAMan]: Wrote data to file")
             return genes_to_cellline
     except Exception as e:
         if logger:
