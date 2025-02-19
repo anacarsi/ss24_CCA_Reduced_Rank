@@ -1,52 +1,52 @@
 {
     "n=10000, p=100": {
         "Cholesky QR-based retraction": {
-            "Time": 0.3380012512207031,
-            "Accuracy": 2206020.7728354237
+            "Time": 0.28829050064086914,
+            "Accuracy": 27240.006101854342
         },
         "Polar-based retraction": {
-            "Time": 0.34169960021972656,
-            "Accuracy": 2936303359123670.0
+            "Time": 0.30009961128234863,
+            "Accuracy": 2853704090734064.0
         }
     },
     "n=10000, p=200": {
         "Cholesky QR-based retraction": {
-            "Time": 0.6104872226715088,
-            "Accuracy": 1835862.9885266968
+            "Time": 0.6997218132019043,
+            "Accuracy": 103020.67207783205
         },
         "Polar-based retraction": {
-            "Time": 0.8845937252044678,
-            "Accuracy": 8481772927396926.0
+            "Time": 0.6723687648773193,
+            "Accuracy": 8587107193292349.0
         }
     },
     "n=10000, p=500": {
         "Cholesky QR-based retraction": {
-            "Time": 1.5443229675292969,
-            "Accuracy": 192115.73411102244
+            "Time": 1.5046319961547852,
+            "Accuracy": 5423622.190820809
         },
         "Polar-based retraction": {
-            "Time": 2.052628993988037,
-            "Accuracy": 3.645785170273635e+16
+            "Time": 2.180424690246582,
+            "Accuracy": 3.63190477987683e+16
         }
     },
     "n=10000, p=1000": {
         "Cholesky QR-based retraction": {
-            "Time": 3.3119778633117676,
-            "Accuracy": 1668126.663180346
+            "Time": 2.6167681217193604,
+            "Accuracy": 5175762.21747854
         },
         "Polar-based retraction": {
-            "Time": 5.458942890167236,
-            "Accuracy": 1.1762985169269685e+17
+            "Time": 3.772390365600586,
+            "Accuracy": 1.179271811051049e+17
         }
     },
     "n=10000, p=2000": {
         "Cholesky QR-based retraction": {
-            "Time": 8.041426420211792,
-            "Accuracy": 76061906.93038212
+            "Time": 6.808451890945435,
+            "Accuracy": 35006481.9083838
         },
         "Polar-based retraction": {
-            "Time": 14.088579177856445,
-            "Accuracy": 4.120625734133282e+17
+            "Time": 10.46055817604065,
+            "Accuracy": 4.113047707259119e+17
         }
     }
 }
