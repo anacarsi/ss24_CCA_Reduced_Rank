@@ -1,6 +1,6 @@
 # **Geometric Approach to Adaptive Canonical Correlation Analysis**  
 Welcome to the **Multivariate Reduced-Rank Models** repository:) This project presents **Canonical Correlation Analysis (CCA)** with numerical methods and optimization on matrix manifolds. It's a continuation of a prior project (2023) on Principal Component Analysis (PCA), expanding into CCA for high-dimensional data and data visualization. A study comparing the final optimization methods used is presented.
- <p align="center"><img src="images/results_retraction_comparison.pdf" alt="Retraction comparison for GSE48213 Dataset" width="600" height="500"/>
+ <p align="center"><img src="images/results_retraction_comparison.png" alt="Retraction comparison for GSE48213 Dataset" />
 </p>
 ---
 ## **🌟 Goals of the Project**  
@@ -52,7 +52,7 @@ The list of drugs against breast cancer analyzed are currently:
     - Potential ranking: Important but more targeted for specific mutations.
 
 Due to the sparse nature of gene data, sparse CCA on the Stiefel manifold is applied to distinguish different patterns of sensitivity across cell lines.
- <p align="center"><img src="images/results_stiefel_lapatinib_alpelisib.pdf" alt="Projection on main CCA components for HER2 and PI3K Inhibitors" width="600" height="500"/>
+ <p align="center"><img src="images/results_stiefel_lapatinib_alpelisib.png" alt="Projection on main CCA components for HER2 and PI3K Inhibitors" />
 </p>
 ---
 
